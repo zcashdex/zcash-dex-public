@@ -1,0 +1,63 @@
+{
+  "name": "Polygon Ren Tokens",
+  "timestamp": "2022-03-03T00:00:00+00:00",
+  "version": {
+    "major": 1,
+    "minor": 0,
+    "patch": 0
+  },
+  "keywords": [
+    "uniswap"
+  ],
+  "tokens": [
+    {
+      "chainId": 137,
+      "address": "0xc3fEd6eB39178A541D274e6Fc748d48f0Ca01CC3",
+      "symbol": "renBCH",
+      "name": "renBCH",
+      "decimals": 8
+    },
+    {
+      "chainId": 137,
+      "address": "0xDBf31dF14B66535aF65AaC99C32e9eA844e14501",
+      "symbol": "renBTC",
+      "name": "renBTC",
+      "decimals": 8
+    },
+    {
+      "chainId": 137,
+      "address": "0x2628568509E87c4429fBb5c664Ed11391BE1BD29",
+      "symbol": "renDGB",
+      "name": "renDGB",
+      "decimals": 8
+    },
+    {
+      "chainId": 137,
+      "address": "0xcE829A89d4A55a63418bcC43F00145adef0eDB8E",
+      "symbol": "renDOGE",
+      "name": "renDOGE",
+      "decimals": 8
+    },
+    {
+      "chainId": 137,
+      "address": "0xc4Ace9278e7E01755B670C0838c3106367639962",
+      "symbol": "renFIL",
+      "name": "renFIL",
+      "decimals": 18
+    },
+    {
+      "chainId": 137,
+      "address": "0x7c7DAAF2dB46fEFd067f002a69FD0BE14AeB159f",
+      "symbol": "renLUNA",
+      "name": "renLUNA",
+      "decimals": 6
+    },
+    {
+      "chainId": 137,
+      "address": "0x31a0D1A199631D244761EEba67e8501296d2E383",
+      "symbol": "renZEC",
+      "name": "renZEC",
+      "decimals": 8
+    }
+  ]
+}

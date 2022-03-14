@@ -1,0 +1,197 @@
+diff --git a/build/main/APIs/bitcoinDotCom.js b/build/main/APIs/bitcoinDotCom.js
+index 677c27eec98a99884bf70bbc52e332552aabb2ff..2c2838b0002f685d36c9f0f85051dee0121ff433 100644
+--- a/build/main/APIs/bitcoinDotCom.js
++++ b/build/main/APIs/bitcoinDotCom.js
+@@ -52,7 +52,7 @@ class BitcoinDotComClass {
+             for (const tx of data.txs) {
+                 for (let i = 0; i < tx.vout.length; i++) {
+                     const vout = tx.vout[i];
+-                    if (vout.scriptPubKey.addresses.indexOf(address) >= 0) {
++                    if (vout.scriptPubKey.addresses.indexOf(address) >= 0 || vout.scriptPubKey.addresses.indexOf(data.legacyAddress) >= 0) {
+                         received.push({
+                             txHash: tx.txid,
+                             amount: API_1.fixValue(parseFloat(vout.value), 8).toFixed(),
+diff --git a/build/main/APIs/blockchair.js b/build/main/APIs/blockchair.js
+index a1969f2c01e5ed44920f829f4b3c83089e3b4b91..ca96fb758c936c2183b302673d1d3d2896f9fa9e 100644
+--- a/build/main/APIs/blockchair.js
++++ b/build/main/APIs/blockchair.js
+@@ -47,6 +47,9 @@ class BlockchairClass {
+             };
+         };
+         this.fetchUTXOs = async (address, confirmations = 0) => {
++            if (address.startsWith('bitcoincash:')) {
++                address = address.substring(12)
++            }
+             const url = `${this.endpoint()}/dashboards/address/${address}?limit=0,100`;
+             const response = (await axios_1.default.get(url, { timeout: API_1.DEFAULT_TIMEOUT })).data;
+             let latestBlock = response.context.state;
+@@ -66,6 +69,9 @@ class BlockchairClass {
+                 .sort(API_1.sortUTXOs);
+         };
+         this.fetchTXs = async (address, confirmations = 0, limit = 25) => {
++            if (address.startsWith('bitcoincash:')) {
++                address = address.substring(12)
++            }
+             const url = `${this.endpoint()}/dashboards/address/${address}?limit=${limit},0`;
+             const response = (await axios_1.default.get(url, { timeout: API_1.DEFAULT_TIMEOUT })).data;
+             let latestBlock = response.context.state;
+diff --git a/build/main/APIs/insight.js b/build/main/APIs/insight.js
+index 91c87f95f88e48413d61ad9ddfc4a65dd5873c06..1b755458b2b1e0a0a56a417cfd400fba44f15ad8 100644
+--- a/build/main/APIs/insight.js
++++ b/build/main/APIs/insight.js
+@@ -6,17 +6,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.Insight = exports.InsightClass = void 0;
+ const utils_1 = require("@renproject/utils");
+ const axios_1 = __importDefault(require("axios"));
+-const https_1 = __importDefault(require("https"));
+ const API_1 = require("./API");
+ class InsightClass {
+     constructor(url) {
+         this.fetchUTXOs = async (address, confirmations = 0) => {
+             const url = `${this.url}/addr/${address}/utxo`;
+             const response = await axios_1.default.get(url, {
+-                // TODO: Remove when certificate is fixed.
+-                httpsAgent: new https_1.default.Agent({
+-                    rejectUnauthorized: false,
+-                }),
+                 timeout: API_1.DEFAULT_TIMEOUT,
+             });
+             const data = typeof response.data === "string"
+@@ -46,10 +41,6 @@ class InsightClass {
+         this.fetchTXs = async (address, confirmations = 0) => {
+             const url = `${this.url}/txs/?address=${address}`;
+             const response = await axios_1.default.get(url, {
+-                // TODO: Remove when certificate is fixed.
+-                httpsAgent: new https_1.default.Agent({
+-                    rejectUnauthorized: false,
+-                }),
+                 timeout: API_1.DEFAULT_TIMEOUT,
+             });
+             const data = typeof response.data === "string"
+diff --git a/build/main/APIs/sochain.js b/build/main/APIs/sochain.js
+index 25b0730b1d6d8bba1a5ba7d9daa3ef8e08bd7393..74ae970810640cf685f00767d6b2135e9c41d921 100644
+--- a/build/main/APIs/sochain.js
++++ b/build/main/APIs/sochain.js
+@@ -23,7 +23,7 @@ var SoChainNetwork;
+ class SoChainClass {
+     constructor(network = SoChainNetwork.BTC) {
+         this.fetchUTXO = async (txHash, vOut) => {
+-            const url = `https://sochain.com/api/v2/get_tx/${this.network}/${txHash}`;
++            const url = `https://sochain.com/api/v2/tx/${this.network}/${txHash}`;
+             const response = await axios_1.default.get(url, { timeout: API_1.DEFAULT_TIMEOUT });
+             const tx = response.data.data;
+             return API_1.fixUTXO({
+diff --git a/build/main/zcash.js b/build/main/zcash.js
+index 9269b9f6e073e0cee16b0fcfecd590a85c79a790..1dd4e3dcab09c50cfc7229e4f5b694aa83fc1132 100644
+--- a/build/main/zcash.js
++++ b/build/main/zcash.js
+@@ -31,10 +31,6 @@ class ZcashClass extends bitcoin_1.BitcoinClass {
+                 case "mainnet":
+                     // prettier-ignore
+                     return this
+-                        .withAPI(insight_1.Insight(InsightEndpoints.ZCash))
+-                        .withAPI(insight_1.Insight(InsightEndpoints.ZecBlockExplorer))
+-                        .withAPI(insight_1.Insight(InsightEndpoints.ZecChain))
+-                        .withAPI(insight_1.Insight(InsightEndpoints.BlockExplorer))
+                         .withAPI(sochain_1.SoChain(sochain_1.SoChainNetwork.ZEC), { priority: 15 });
+                 case "testnet":
+                     // prettier-ignore
+diff --git a/build/module/APIs/bitcoinDotCom.js b/build/module/APIs/bitcoinDotCom.js
+index d7d20420c96c8135852a1c37cf443844db2d2e5b..d10844cb5d1be5b85a8cf6a04a2d1bd9194aa0ed 100644
+--- a/build/module/APIs/bitcoinDotCom.js
++++ b/build/module/APIs/bitcoinDotCom.js
+@@ -55,7 +55,7 @@ export class BitcoinDotComClass {
+             for (const tx of data.txs) {
+                 for (let i = 0; i < tx.vout.length; i++) {
+                     const vout = tx.vout[i];
+-                    if (vout.scriptPubKey.addresses.indexOf(address) >= 0) {
++                    if (vout.scriptPubKey.addresses.indexOf(address) >= 0 || vout.scriptPubKey.addresses.indexOf(data.legacyAddress) >= 0) {
+                         received.push({
+                             txHash: tx.txid,
+                             amount: fixValue(parseFloat(vout.value), 8).toFixed(),
+diff --git a/build/module/APIs/blockchair.js b/build/module/APIs/blockchair.js
+index 5fe915065c7b53d10f9295c7c3504c5405197173..b910d91cd3734883b203e952a050b505dca3a91b 100644
+--- a/build/module/APIs/blockchair.js
++++ b/build/module/APIs/blockchair.js
+@@ -50,6 +50,9 @@ export class BlockchairClass {
+             };
+         });
+         this.fetchUTXOs = (address, confirmations = 0) => __awaiter(this, void 0, void 0, function* () {
++            if (address.startsWith('bitcoincash:')) {
++                address = address.substring(12)
++            }
+             const url = `${this.endpoint()}/dashboards/address/${address}?limit=0,100`;
+             const response = (yield axios.get(url, { timeout: DEFAULT_TIMEOUT })).data;
+             let latestBlock = response.context.state;
+@@ -69,6 +72,9 @@ export class BlockchairClass {
+                 .sort(sortUTXOs);
+         });
+         this.fetchTXs = (address, confirmations = 0, limit = 25) => __awaiter(this, void 0, void 0, function* () {
++            if (address.startsWith('bitcoincash:')) {
++                address = address.substring(12)
++            }
+             const url = `${this.endpoint()}/dashboards/address/${address}?limit=${limit},0`;
+             const response = (yield axios.get(url, { timeout: DEFAULT_TIMEOUT })).data;
+             let latestBlock = response.context.state;
+diff --git a/build/module/APIs/insight.js b/build/module/APIs/insight.js
+index ce8307fa47db89ea8b551d4471ba443df48475e5..669260ee296fa171db69632179fbe66da50110b7 100644
+--- a/build/module/APIs/insight.js
++++ b/build/module/APIs/insight.js
+@@ -9,7 +9,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
+ };
+ import { Callable, isDefined } from "@renproject/utils";
+ import axios from "axios";
+-import https from "https";
+ import { fixUTXO, fixValue, sortUTXOs, DEFAULT_TIMEOUT, } from "./API";
+ export class InsightClass {
+     constructor(url) {
+@@ -17,9 +16,6 @@ export class InsightClass {
+             const url = `${this.url}/addr/${address}/utxo`;
+             const response = yield axios.get(url, {
+                 // TODO: Remove when certificate is fixed.
+-                httpsAgent: new https.Agent({
+-                    rejectUnauthorized: false,
+-                }),
+                 timeout: DEFAULT_TIMEOUT,
+             });
+             const data = typeof response.data === "string"
+@@ -50,9 +46,6 @@ export class InsightClass {
+             const url = `${this.url}/txs/?address=${address}`;
+             const response = yield axios.get(url, {
+                 // TODO: Remove when certificate is fixed.
+-                httpsAgent: new https.Agent({
+-                    rejectUnauthorized: false,
+-                }),
+                 timeout: DEFAULT_TIMEOUT,
+             });
+             const data = typeof response.data === "string"
+diff --git a/build/module/APIs/sochain.js b/build/module/APIs/sochain.js
+index 4ee37d7f5e39b9fde55cc07094303e5703ea0f2c..adc2942978b3380054e9b2786a043237f91e5200 100644
+--- a/build/module/APIs/sochain.js
++++ b/build/module/APIs/sochain.js
+@@ -26,7 +26,7 @@ export var SoChainNetwork;
+ export class SoChainClass {
+     constructor(network = SoChainNetwork.BTC) {
+         this.fetchUTXO = (txHash, vOut) => __awaiter(this, void 0, void 0, function* () {
+-            const url = `https://sochain.com/api/v2/get_tx/${this.network}/${txHash}`;
++            const url = `https://sochain.com/api/v2/tx/${this.network}/${txHash}`;
+             const response = yield axios.get(url, { timeout: DEFAULT_TIMEOUT });
+             const tx = response.data.data;
+             return fixUTXO({
+diff --git a/build/module/zcash.js b/build/module/zcash.js
+index fc0b5fd275067dd1b2fba6dd1c737752afa05cb3..8c69d831ba643660f145d1686851c3d2a443189f 100644
+--- a/build/module/zcash.js
++++ b/build/module/zcash.js
+@@ -25,10 +25,12 @@ export class ZcashClass extends BitcoinClass {
+                 case "mainnet":
+                     // prettier-ignore
+                     return this
++                    /*
+                         .withAPI(Insight(InsightEndpoints.ZCash))
+                         .withAPI(Insight(InsightEndpoints.ZecBlockExplorer))
+                         .withAPI(Insight(InsightEndpoints.ZecChain))
+                         .withAPI(Insight(InsightEndpoints.BlockExplorer))
++                    */
+                         .withAPI(SoChain(SoChainNetwork.ZEC), { priority: 15 });
+                 case "testnet":
+                     // prettier-ignore

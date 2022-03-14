@@ -1,0 +1,23 @@
+{
+  "name": "zcash-dex-backend",
+  "version": "0.1.0",
+  "main": "index.js",
+  "license": "AGPL-3.0-or-later",
+  "dependencies": {
+    "@renproject/chains-bitcoin": "2.5.12",
+    "@renproject/chains-ethereum": "^2.5.12",
+    "@renproject/ren": "^2.5.12",
+    "axios": "^0.26.1",
+    "bech32": "^2.0.0",
+    "bn.js": "^5.2.0",
+    "bs58": "^5.0.0",
+    "cors": "^2.8.5",
+    "ethers": "^5.5.4",
+    "express": "^4.17.3",
+    "uuid": "^8.3.2"
+  },
+  "packageManager": "yarn@3.2.0",
+  "resolutions": {
+    "@renproject/chains-bitcoin@2.5.12": "patch:@renproject/chains-bitcoin@npm:2.5.12#.yarn/patches/@renproject-chains-bitcoin-npm-2.5.12-ea8cdf0476.patch"
+  }
+}
